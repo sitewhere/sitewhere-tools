@@ -36,4 +36,33 @@ public interface ISiteWhereEventDispatcher {
 	 * @throws SiteWhereAgentException
 	 */
 	public void acknowledge(SiteWhere.Acknowledge ack, String originator) throws SiteWhereAgentException;
+
+	/**
+	 * Send a measurement event.
+	 * 
+	 * @param measurement
+	 * @param originator
+	 * @throws SiteWhereAgentException
+	 */
+	public void sendMeasurement(SiteWhere.DeviceMeasurement measurement, String originator)
+			throws SiteWhereAgentException;
+
+	/**
+	 * Send a location event.
+	 * 
+	 * @param location
+	 * @param originator
+	 * @throws SiteWhereAgentException
+	 */
+	public void sendLocation(SiteWhere.DeviceLocation location, String originator)
+			throws SiteWhereAgentException;
+
+	/**
+	 * Send an alert event.
+	 * 
+	 * @param alert
+	 * @param originator
+	 * @throws SiteWhereAgentException
+	 */
+	public void sendAlert(SiteWhere.DeviceAlert alert, String originator) throws SiteWhereAgentException;
 }

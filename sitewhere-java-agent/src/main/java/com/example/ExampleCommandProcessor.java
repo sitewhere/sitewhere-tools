@@ -107,10 +107,30 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 				SiteWhere.Acknowledge ack =
 						builder.setHardwareId(getHardwareId()).setMessage(response).build();
 				dispatcher.acknowledge(ack, header.getOriginator());
+				break;
 			}
 			case PING: {
+				SiteWhere.Acknowledge.Builder builder = SiteWhere.Acknowledge.newBuilder();
+				SiteWhere.Acknowledge ack =
+						builder.setHardwareId(getHardwareId()).setMessage("Acknowledged.").build();
+				dispatcher.acknowledge(ack, header.getOriginator());
+				break;
 			}
 			case TESTEVENTS: {
+				SiteWhere.DeviceMeasurement.Builder mb = SiteWhere.DeviceMeasurement.newBuilder();
+				mb.setHardwareId(getHardwareId()).setMeasurementId("engine.temp").setMeasurementValue(170.0);
+				dispatcher.sendMeasurement(mb.build(), header.getOriginator());
+
+				SiteWhere.DeviceLocation.Builder lb = SiteWhere.DeviceLocation.newBuilder();
+				lb.setHardwareId(getHardwareId()).setLatitude(33.7550).setLongitude(-84.3900).setElevation(
+						0.0);
+				dispatcher.sendLocation(lb.build(), header.getOriginator());
+
+				SiteWhere.DeviceAlert.Builder ab = SiteWhere.DeviceAlert.newBuilder();
+				ab.setHardwareId(getHardwareId()).setAlertType("engine.overheat").setAlertMessage(
+						"Engine is overheating!");
+				dispatcher.sendAlert(ab.build(), header.getOriginator());
+				break;
 			}
 			}
 		} catch (IOException e) {

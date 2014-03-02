@@ -24,9 +24,13 @@ import org.fusesource.mqtt.client.Message;
 import org.fusesource.mqtt.client.QoS;
 import org.fusesource.mqtt.client.Topic;
 
+import com.google.protobuf.AbstractMessageLite;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.Acknowledge;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.Command;
+import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceAlert;
+import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceLocation;
+import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceMeasurement;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.RegisterDevice;
 
 /**
@@ -178,21 +182,7 @@ public class Agent {
 		 */
 		@Override
 		public void registerDevice(RegisterDevice register, String originator) throws SiteWhereAgentException {
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			try {
-				SiteWhere.Header.Builder builder = SiteWhere.Header.newBuilder();
-				builder.setCommand(Command.REGISTER);
-				if (originator != null) {
-					builder.setOriginator(originator);
-				}
-				builder.build().writeDelimitedTo(out);
-				register.writeDelimitedTo(out);
-				connection.publish(getTopic(), out.toByteArray(), QoS.AT_LEAST_ONCE, false);
-			} catch (IOException e) {
-				throw new SiteWhereAgentException("Problem encoding registration message.", e);
-			} catch (Exception e) {
-				throw new SiteWhereAgentException(e);
-			}
+			sendMessage(Command.REGISTER, register, originator, "registration");
 		}
 
 		/*
@@ -204,18 +194,71 @@ public class Agent {
 		 */
 		@Override
 		public void acknowledge(Acknowledge ack, String originator) throws SiteWhereAgentException {
+			sendMessage(Command.ACKNOWLEDGE, ack, originator, "ack");
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * com.sitewhere.agent.ISiteWhereEventDispatcher#sendMeasurement(com.sitewhere
+		 * .device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceMeasurement,
+		 * java.lang.String)
+		 */
+		@Override
+		public void sendMeasurement(DeviceMeasurement measurement, String originator)
+				throws SiteWhereAgentException {
+			sendMessage(Command.DEVICEMEASUREMENT, measurement, originator, "measurement");
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * com.sitewhere.agent.ISiteWhereEventDispatcher#sendLocation(com.sitewhere.device
+		 * .provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceLocation,
+		 * java.lang.String)
+		 */
+		@Override
+		public void sendLocation(DeviceLocation location, String originator) throws SiteWhereAgentException {
+			sendMessage(Command.DEVICELOCATION, location, originator, "location");
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * com.sitewhere.agent.ISiteWhereEventDispatcher#sendAlert(com.sitewhere.device
+		 * .provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceAlert, java.lang.String)
+		 */
+		@Override
+		public void sendAlert(DeviceAlert alert, String originator) throws SiteWhereAgentException {
+			sendMessage(Command.DEVICEALERT, alert, originator, "alert");
+		}
+
+		/**
+		 * Common logic for sending messages via protocol buffers.
+		 * 
+		 * @param command
+		 * @param message
+		 * @param originator
+		 * @param label
+		 * @throws SiteWhereAgentException
+		 */
+		protected void sendMessage(SiteWhere.Command command, AbstractMessageLite message, String originator,
+				String label) throws SiteWhereAgentException {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			try {
 				SiteWhere.Header.Builder builder = SiteWhere.Header.newBuilder();
-				builder.setCommand(Command.ACKNOWLEDGE);
+				builder.setCommand(command);
 				if (originator != null) {
 					builder.setOriginator(originator);
 				}
 				builder.build().writeDelimitedTo(out);
-				ack.writeDelimitedTo(out);
+				message.writeDelimitedTo(out);
 				connection.publish(getTopic(), out.toByteArray(), QoS.AT_LEAST_ONCE, false);
 			} catch (IOException e) {
-				throw new SiteWhereAgentException("Problem encoding ack message.", e);
+				throw new SiteWhereAgentException("Problem encoding " + label + " message.", e);
 			} catch (Exception e) {
 				throw new SiteWhereAgentException(e);
 			}
