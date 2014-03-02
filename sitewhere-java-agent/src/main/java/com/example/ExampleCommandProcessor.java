@@ -107,6 +107,7 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 				SiteWhere.Acknowledge ack =
 						builder.setHardwareId(getHardwareId()).setMessage(response).build();
 				dispatcher.acknowledge(ack, header.getOriginator());
+				LOGGER.info("Sent reponse to 'helloWorld' command.");
 				break;
 			}
 			case PING: {
@@ -114,6 +115,7 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 				SiteWhere.Acknowledge ack =
 						builder.setHardwareId(getHardwareId()).setMessage("Acknowledged.").build();
 				dispatcher.acknowledge(ack, header.getOriginator());
+				LOGGER.info("Sent reponse to 'ping' command.");
 				break;
 			}
 			case TESTEVENTS: {
@@ -130,6 +132,7 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 				ab.setHardwareId(getHardwareId()).setAlertType("engine.overheat").setAlertMessage(
 						"Engine is overheating!");
 				dispatcher.sendAlert(ab.build(), header.getOriginator());
+				LOGGER.info("Sent reponse to 'testEvents' command.");
 				break;
 			}
 			}
