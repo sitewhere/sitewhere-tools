@@ -15,6 +15,7 @@ import java.io.IOException;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.Device;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.Device.Header;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.Device.RegistrationAck;
+import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere;
 
 /**
  * Base class for command processing. Handles processing of inbound SiteWhere system
@@ -77,5 +78,73 @@ public class BaseCommandProcessor implements IAgentCommandProcessor {
 	 * @param originator
 	 */
 	public void handleRegisterAck(Header header, RegistrationAck ack) {
+	}
+
+	/**
+	 * Convenience method for sending an acknowledgement event to SiteWhere.
+	 * 
+	 * @param dispatcher
+	 * @param hardwareId
+	 * @param originator
+	 * @param message
+	 * @throws SiteWhereAgentException
+	 */
+	public void sendAck(ISiteWhereEventDispatcher dispatcher, String hardwareId, String originator,
+			String message) throws SiteWhereAgentException {
+		SiteWhere.Acknowledge.Builder builder = SiteWhere.Acknowledge.newBuilder();
+		SiteWhere.Acknowledge ack = builder.setHardwareId(hardwareId).setMessage(message).build();
+		dispatcher.acknowledge(ack, originator);
+	}
+
+	/**
+	 * Convenience method for sending a measurement event to SiteWhere.
+	 * 
+	 * @param dispatcher
+	 * @param hardwareId
+	 * @param originator
+	 * @param name
+	 * @param value
+	 * @throws SiteWhereAgentException
+	 */
+	public void sendMeasurement(ISiteWhereEventDispatcher dispatcher, String hardwareId, String originator,
+			String name, double value) throws SiteWhereAgentException {
+		SiteWhere.DeviceMeasurement.Builder mb = SiteWhere.DeviceMeasurement.newBuilder();
+		mb.setHardwareId(hardwareId).setMeasurementId(name).setMeasurementValue(value);
+		dispatcher.sendMeasurement(mb.build(), originator);
+	}
+
+	/**
+	 * Convenience method for sending a location event to SiteWhere.
+	 * 
+	 * @param dispatcher
+	 * @param hardwareId
+	 * @param originator
+	 * @param latitude
+	 * @param longitude
+	 * @param elevation
+	 * @throws SiteWhereAgentException
+	 */
+	public void sendLocation(ISiteWhereEventDispatcher dispatcher, String hardwareId, String originator,
+			double latitude, double longitude, double elevation) throws SiteWhereAgentException {
+		SiteWhere.DeviceLocation.Builder lb = SiteWhere.DeviceLocation.newBuilder();
+		lb.setHardwareId(hardwareId).setLatitude(latitude).setLongitude(longitude).setElevation(elevation);
+		dispatcher.sendLocation(lb.build(), originator);
+	}
+
+	/**
+	 * Convenience method for sending an alert event to SiteWhere.
+	 * 
+	 * @param dispatcher
+	 * @param hardwareId
+	 * @param originator
+	 * @param alertType
+	 * @param message
+	 * @throws SiteWhereAgentException
+	 */
+	public void sendAlert(ISiteWhereEventDispatcher dispatcher, String hardwareId, String originator,
+			String alertType, String message) throws SiteWhereAgentException {
+		SiteWhere.DeviceAlert.Builder ab = SiteWhere.DeviceAlert.newBuilder();
+		ab.setHardwareId(hardwareId).setAlertType(alertType).setAlertMessage(message);
+		dispatcher.sendAlert(ab.build(), originator);
 	}
 }

@@ -20,7 +20,6 @@ import com.sitewhere.agent.ISiteWhereEventDispatcher;
 import com.sitewhere.agent.SiteWhereAgentException;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.Device.Header;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.Device.RegistrationAck;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.RegisterDevice;
 
 /**
@@ -103,35 +102,20 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 				if (hw.getLoud()) {
 					response = response.toUpperCase();
 				}
-				SiteWhere.Acknowledge.Builder builder = SiteWhere.Acknowledge.newBuilder();
-				SiteWhere.Acknowledge ack =
-						builder.setHardwareId(getHardwareId()).setMessage(response).build();
-				dispatcher.acknowledge(ack, header.getOriginator());
+				sendAck(dispatcher, hardwareId, header.getOriginator(), response);
 				LOGGER.info("Sent reponse to 'helloWorld' command.");
 				break;
 			}
 			case PING: {
-				SiteWhere.Acknowledge.Builder builder = SiteWhere.Acknowledge.newBuilder();
-				SiteWhere.Acknowledge ack =
-						builder.setHardwareId(getHardwareId()).setMessage("Acknowledged.").build();
-				dispatcher.acknowledge(ack, header.getOriginator());
+				sendAck(dispatcher, hardwareId, header.getOriginator(), "Acknowledged.");
 				LOGGER.info("Sent reponse to 'ping' command.");
 				break;
 			}
 			case TESTEVENTS: {
-				SiteWhere.DeviceMeasurement.Builder mb = SiteWhere.DeviceMeasurement.newBuilder();
-				mb.setHardwareId(getHardwareId()).setMeasurementId("engine.temp").setMeasurementValue(170.0);
-				dispatcher.sendMeasurement(mb.build(), header.getOriginator());
-
-				SiteWhere.DeviceLocation.Builder lb = SiteWhere.DeviceLocation.newBuilder();
-				lb.setHardwareId(getHardwareId()).setLatitude(33.7550).setLongitude(-84.3900).setElevation(
-						0.0);
-				dispatcher.sendLocation(lb.build(), header.getOriginator());
-
-				SiteWhere.DeviceAlert.Builder ab = SiteWhere.DeviceAlert.newBuilder();
-				ab.setHardwareId(getHardwareId()).setAlertType("engine.overheat").setAlertMessage(
+				sendMeasurement(dispatcher, hardwareId, header.getOriginator(), "engine.temp", 170.0);
+				sendLocation(dispatcher, hardwareId, header.getOriginator(), 33.7550, -84.3900, 0.0);
+				sendAlert(dispatcher, hardwareId, header.getOriginator(), "engine.overheat",
 						"Engine is overheating!");
-				dispatcher.sendAlert(ab.build(), header.getOriginator());
 				LOGGER.info("Sent reponse to 'testEvents' command.");
 				break;
 			}
