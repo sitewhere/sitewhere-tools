@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="sitewhere-java-agent/src/main/java"/>
+	<classpathentry kind="src" path="sitewhere-java-agent/src/proto/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="var" path="M2_REPO/com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/fusesource/mqtt-client/mqtt-client/1.7/mqtt-client-1.7.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/fusesource/hawtbuf/hawtbuf/1.9/hawtbuf-1.9.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

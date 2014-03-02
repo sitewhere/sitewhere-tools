@@ -1,4 +1,4 @@
-sitewhere-tools
+SiteWhere Tools
 ===============
 
-External tools for managing or interacting with SiteWhere
+External tools for managing or interacting with SiteWhere.
