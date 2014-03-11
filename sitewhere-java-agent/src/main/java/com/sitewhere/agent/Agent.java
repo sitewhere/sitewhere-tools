@@ -256,7 +256,7 @@ public class Agent {
 				}
 				builder.build().writeDelimitedTo(out);
 				message.writeDelimitedTo(out);
-				connection.publish(getTopic(), out.toByteArray(), QoS.AT_LEAST_ONCE, false);
+				connection.publish(getTopic(), out.toByteArray(), QoS.EXACTLY_ONCE, false);
 			} catch (IOException e) {
 				throw new SiteWhereAgentException("Problem encoding " + label + " message.", e);
 			} catch (Exception e) {
