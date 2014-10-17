@@ -7,7 +7,7 @@
 	<groupId>com.sitewhere</groupId>
 	<artifactId>sitewhere-java-agent</artifactId>
 	<packaging>jar</packaging>
-	<version>0.9.4</version>
+	<version>1.0.0</version>
 	<name>SiteWhere Java Agent</name>
 	<description>Small Java agent for interacting with SiteWhere over Protocol Buffers</description>
 	<url>http://www.sitewhere.org/</url>
@@ -32,7 +32,7 @@
 		<developer>
 			<id>derekadams</id>
 			<name>Derek Adams</name>
-			<email>derek.adams@reveal-tech.com</email>
+			<email>derek.adams@sitewhere.com</email>
 		</developer>
 	</developers>
 	<issueManagement>
@@ -40,8 +40,8 @@
 		<url>https://sitewhere.atlassian.net</url>
 	</issueManagement>
 	<organization>
-		<name>Reveal Technologies, LLC.</name>
-		<url>http://www.reveal-tech.com/</url>
+		<name>SiteWhere, LLC.</name>
+		<url>http://www.sitewhere.com/</url>
 	</organization>
 
 	<distributionManagement>
