@@ -44,7 +44,7 @@ public interface ISiteWhereEventDispatcher {
 	 * @param originator
 	 * @throws SiteWhereAgentException
 	 */
-	public void sendMeasurement(SiteWhere.DeviceMeasurement measurement, String originator)
+	public void sendMeasurement(SiteWhere.DeviceMeasurements measurement, String originator)
 			throws SiteWhereAgentException;
 
 	/**

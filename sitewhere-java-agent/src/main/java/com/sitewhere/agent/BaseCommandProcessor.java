@@ -108,8 +108,9 @@ public class BaseCommandProcessor implements IAgentCommandProcessor {
 	 */
 	public void sendMeasurement(ISiteWhereEventDispatcher dispatcher, String hardwareId, String originator,
 			String name, double value) throws SiteWhereAgentException {
-		SiteWhere.DeviceMeasurement.Builder mb = SiteWhere.DeviceMeasurement.newBuilder();
-		mb.setHardwareId(hardwareId).setMeasurementId(name).setMeasurementValue(value);
+		SiteWhere.DeviceMeasurements.Builder mb = SiteWhere.DeviceMeasurements.newBuilder();
+		mb.setHardwareId(hardwareId).addMeasurement(
+				SiteWhere.Measurement.newBuilder().setMeasurementId(name).setMeasurementValue(value).build());
 		dispatcher.sendMeasurement(mb.build(), originator);
 	}
 

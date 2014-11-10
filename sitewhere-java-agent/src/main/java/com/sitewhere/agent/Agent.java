@@ -30,7 +30,7 @@ import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.Ackn
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.Command;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceAlert;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceLocation;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceMeasurement;
+import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceMeasurements;
 import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.RegisterDevice;
 
 /**
@@ -206,7 +206,7 @@ public class Agent {
 		 * java.lang.String)
 		 */
 		@Override
-		public void sendMeasurement(DeviceMeasurement measurement, String originator)
+		public void sendMeasurement(DeviceMeasurements measurement, String originator)
 				throws SiteWhereAgentException {
 			sendMessage(Command.DEVICEMEASUREMENT, measurement, originator, "measurement");
 		}
