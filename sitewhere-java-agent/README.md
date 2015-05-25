@@ -39,4 +39,23 @@ Start the agent by entering:
     java -jar sitewhere-java-agent-x.y.z.jar
     
 Note that **z.y.z** above should be replaced by the version number of the agent. The
-agent should start	
+agent should start and the logs produced in the console will reflect that the device
+has registered with SiteWhere successfully. The next step is to send a command from
+SiteWhere to affect the device.
+
+Open the SiteWhere administrative application, log in, then click the green arrow
+next to the first site in the list. A Raspberry Pi device should appear at the top 
+of the assignments list along with the label **Unassociated Device**, which 
+indicates it has not been associated with an asset. To send a command to the 
+agent from SiteWhere, click the green arrow on the device assignment and open
+the **Command Invocations** tab. Click the **Invoke Command** button and choose
+**Ping** from the list of commands and **Invoke** to invoke it. A new command
+invocation will show up at the top of the list and there should be output in the
+agent log indicating that it sent a response to the command. To see the response
+that was sent from the agent, click the icon to the right of the command invocation
+in the administrative interface to view the invocation.	Click the **Responses**
+tab and there should be a response of **'Ackkonwledged'**.
+
+At this point the device has registered with SiteWhere, SiteWhere has sent a command
+which executed Java code on the agent, and the agent sent a response to SiteWhere 
+which was correlated with the original command.
