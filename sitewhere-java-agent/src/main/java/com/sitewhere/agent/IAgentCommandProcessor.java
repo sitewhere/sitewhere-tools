@@ -1,7 +1,5 @@
 /*
- * IAgentCommandProcessor.java 
- * --------------------------------------------------------------------------------------
- * Copyright (c) Reveal Technologies, LLC. All rights reserved. http://www.reveal-tech.com
+ * Copyright (c) SiteWhere LLC. All rights reserved. http://www.sitewhere.com
  *
  * The software in this package is published under the terms of the MIT
  * license, a copy of which has been included with this distribution in the
@@ -46,4 +44,11 @@ public interface IAgentCommandProcessor {
 	 */
 	public void processSpecificationCommand(byte[] message, ISiteWhereEventDispatcher dispatcher)
 			throws SiteWhereAgentException;
+
+	/**
+	 * Set the event dispatcher that allows data to be sent back to SiteWhere.
+	 * 
+	 * @param dispatcher
+	 */
+	public void setEventDispatcher(ISiteWhereEventDispatcher dispatcher);
 }

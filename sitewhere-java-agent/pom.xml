@@ -1,20 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                      http://maven.apache.org/maven-v4_0_0.xsd"
->
+                      http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.sitewhere</groupId>
 	<artifactId>sitewhere-java-agent</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.0</version>
+	<version>1.0.3</version>
 	<name>SiteWhere Java Agent</name>
-	<description>Small Java agent for interacting with SiteWhere over Protocol Buffers</description>
+	<description>Java agent for interacting with SiteWhere over MQTT/Protocol Buffers</description>
 	<url>http://www.sitewhere.org/</url>
 
 	<properties>
 		<protobuf.version>2.5.0</protobuf.version>
-		<log4j.version>1.2.15</log4j.version>
+		<sitewhere.version>1.0.3</sitewhere.version>
 	</properties>
 
 	<licenses>
@@ -57,14 +56,12 @@
 		</snapshotRepository>
 	</distributionManagement>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>protoc-plugin</id>
-			<url>http://sergei-ivanov.github.com/maven-protoc-plugin/repo/releases/</url>
-		</pluginRepository>
-	</pluginRepositories>
-
 	<dependencies>
+		<dependency>
+			<groupId>com.sitewhere</groupId>
+			<artifactId>sitewhere-client</artifactId>
+			<version>${sitewhere.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java</artifactId>
@@ -80,31 +77,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.google.protobuf.tools</groupId>
-				<artifactId>maven-protoc-plugin</artifactId>
-				<version>0.3.2</version>
-				<configuration>
-					<protocExecutable>C:\Google\protobuf-2.5.0\bin\protoc.exe</protocExecutable>
-					<outputDirectory>${basedir}/src/proto/java</outputDirectory>
-					<checkStaleness>true</checkStaleness>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>2.2</version>
 				<executions>
@@ -115,16 +87,30 @@
 						</goals>
 						<configuration>
 							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<artifactSet>
+								<excludes>
+									<exclude>org.springframework:*</exclude>
+									<exclude>org.apache.httpcomponents:*</exclude>
+									<exclude>com.fasterxml.jackson.core:*</exclude>
+									<exclude>io.dropwizard.metrics:*</exclude>
+								</excludes>
+							</artifactSet>
 							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"
-								>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>com.sitewhere.agent.AgentLoader</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

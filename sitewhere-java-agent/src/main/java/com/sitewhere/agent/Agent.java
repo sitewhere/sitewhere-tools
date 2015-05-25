@@ -1,7 +1,5 @@
 /*
- * Agent.java 
- * --------------------------------------------------------------------------------------
- * Copyright (c) Reveal Technologies, LLC. All rights reserved. http://www.reveal-tech.com
+ * Copyright (c) SiteWhere LLC. All rights reserved. http://www.sitewhere.com
  *
  * The software in this package is published under the terms of the MIT
  * license, a copy of which has been included with this distribution in the
@@ -25,13 +23,11 @@ import org.fusesource.mqtt.client.QoS;
 import org.fusesource.mqtt.client.Topic;
 
 import com.google.protobuf.AbstractMessageLite;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.Acknowledge;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.Command;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceAlert;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceLocation;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceMeasurements;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere.RegisterDevice;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Model;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.SiteWhere;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.SiteWhere.Acknowledge;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.SiteWhere.Command;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.SiteWhere.RegisterDevice;
 
 /**
  * Agent that handles message processing.
@@ -97,9 +93,6 @@ public class Agent {
 	public void start() throws SiteWhereAgentException {
 		LOGGER.info("SiteWhere agent starting...");
 
-		// Create an instance of the command processor.
-		IAgentCommandProcessor processor = createProcessor();
-
 		this.mqtt = new MQTT();
 		try {
 			mqtt.setHost(getMqttHostname(), getMqttPort());
@@ -117,6 +110,9 @@ public class Agent {
 
 		// Create outbound message processor.
 		outbound = new MQTTOutbound(connection, getOutboundSiteWhereTopic());
+
+		// Create an instance of the command processor.
+		IAgentCommandProcessor processor = createProcessor(outbound);
 
 		// Create inbound message processing thread.
 		inbound =
@@ -138,13 +134,17 @@ public class Agent {
 	/**
 	 * Create an instance of the command processor.
 	 * 
+	 * @param dispatcher
 	 * @return
 	 * @throws SiteWhereAgentException
 	 */
-	protected IAgentCommandProcessor createProcessor() throws SiteWhereAgentException {
+	protected IAgentCommandProcessor createProcessor(ISiteWhereEventDispatcher dispatcher)
+			throws SiteWhereAgentException {
 		try {
 			Class<?> clazz = Class.forName(getCommandProcessorClassname());
-			return (IAgentCommandProcessor) clazz.newInstance();
+			IAgentCommandProcessor processor = (IAgentCommandProcessor) clazz.newInstance();
+			processor.setEventDispatcher(dispatcher);
+			return processor;
 		} catch (ClassNotFoundException e) {
 			throw new SiteWhereAgentException(e);
 		} catch (InstantiationException e) {
@@ -177,12 +177,12 @@ public class Agent {
 		 * 
 		 * @see
 		 * com.sitewhere.agent.ISiteWhereEventDispatcher#registerDevice(com.sitewhere.
-		 * device.provisioning.protobuf.proto.Sitewhere.SiteWhere.RegisterDevice,
+		 * device.communication.protobuf.proto.Sitewhere.SiteWhere.RegisterDevice,
 		 * java.lang.String)
 		 */
 		@Override
 		public void registerDevice(RegisterDevice register, String originator) throws SiteWhereAgentException {
-			sendMessage(Command.REGISTER, register, originator, "registration");
+			sendMessage(Command.SEND_REGISTRATION, register, originator, "registration");
 		}
 
 		/*
@@ -190,11 +190,12 @@ public class Agent {
 		 * 
 		 * @see
 		 * com.sitewhere.agent.ISiteWhereEventDispatcher#acknowledge(com.sitewhere.device
-		 * .provisioning.protobuf.proto.Sitewhere.SiteWhere.Acknowledge, java.lang.String)
+		 * .communication.protobuf.proto.Sitewhere.SiteWhere.Acknowledge,
+		 * java.lang.String)
 		 */
 		@Override
 		public void acknowledge(Acknowledge ack, String originator) throws SiteWhereAgentException {
-			sendMessage(Command.ACKNOWLEDGE, ack, originator, "ack");
+			sendMessage(Command.SEND_ACKNOWLEDGEMENT, ack, originator, "ack");
 		}
 
 		/*
@@ -202,13 +203,13 @@ public class Agent {
 		 * 
 		 * @see
 		 * com.sitewhere.agent.ISiteWhereEventDispatcher#sendMeasurement(com.sitewhere
-		 * .device.provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceMeasurement,
+		 * .device.communication.protobuf.proto.Sitewhere.Model.DeviceMeasurements,
 		 * java.lang.String)
 		 */
 		@Override
-		public void sendMeasurement(DeviceMeasurements measurement, String originator)
+		public void sendMeasurement(Model.DeviceMeasurements measurement, String originator)
 				throws SiteWhereAgentException {
-			sendMessage(Command.DEVICEMEASUREMENT, measurement, originator, "measurement");
+			sendMessage(Command.SEND_DEVICE_MEASUREMENTS, measurement, originator, "measurement");
 		}
 
 		/*
@@ -216,12 +217,12 @@ public class Agent {
 		 * 
 		 * @see
 		 * com.sitewhere.agent.ISiteWhereEventDispatcher#sendLocation(com.sitewhere.device
-		 * .provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceLocation,
-		 * java.lang.String)
+		 * .communication.protobuf.proto.Sitewhere.Model.DeviceLocation, java.lang.String)
 		 */
 		@Override
-		public void sendLocation(DeviceLocation location, String originator) throws SiteWhereAgentException {
-			sendMessage(Command.DEVICELOCATION, location, originator, "location");
+		public void sendLocation(Model.DeviceLocation location, String originator)
+				throws SiteWhereAgentException {
+			sendMessage(Command.SEND_DEVICE_LOCATION, location, originator, "location");
 		}
 
 		/*
@@ -229,11 +230,11 @@ public class Agent {
 		 * 
 		 * @see
 		 * com.sitewhere.agent.ISiteWhereEventDispatcher#sendAlert(com.sitewhere.device
-		 * .provisioning.protobuf.proto.Sitewhere.SiteWhere.DeviceAlert, java.lang.String)
+		 * .communication.protobuf.proto.Sitewhere.Model.DeviceAlert, java.lang.String)
 		 */
 		@Override
-		public void sendAlert(DeviceAlert alert, String originator) throws SiteWhereAgentException {
-			sendMessage(Command.DEVICEALERT, alert, originator, "alert");
+		public void sendAlert(Model.DeviceAlert alert, String originator) throws SiteWhereAgentException {
+			sendMessage(Command.SEND_DEVICE_ALERT, alert, originator, "alert");
 		}
 
 		/**

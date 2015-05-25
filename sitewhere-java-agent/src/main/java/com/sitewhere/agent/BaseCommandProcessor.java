@@ -1,9 +1,7 @@
 /*
- * BaseCommandProcessor.java 
- * --------------------------------------------------------------------------------------
- * Copyright (c) Reveal Technologies, LLC. All rights reserved. http://www.reveal-tech.com
+ * Copyright (c) SiteWhere LLC. All rights reserved. http://www.sitewhere.com
  *
- * The software in this package is published under the terms of the CPAL v1.0
+ * The software in this package is published under the terms of the MIT
  * license, a copy of which has been included with this distribution in the
  * LICENSE.txt file.
  */
@@ -11,11 +9,19 @@ package com.sitewhere.agent;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.StreamCorruptedException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.Device;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.Device.Header;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.Device.RegistrationAck;
-import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Device;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Device.Header;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Device.RegistrationAck;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Model;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.SiteWhere;
+import com.sitewhere.spi.device.event.IDeviceEventOriginator;
 
 /**
  * Base class for command processing. Handles processing of inbound SiteWhere system
@@ -24,6 +30,12 @@ import com.sitewhere.device.provisioning.protobuf.proto.Sitewhere.SiteWhere;
  * @author Derek
  */
 public class BaseCommandProcessor implements IAgentCommandProcessor {
+
+	/** Static logger instance */
+	private static final Logger LOGGER = Logger.getLogger(BaseCommandProcessor.class.getName());
+
+	/** SiteWhere event dispatcher */
+	private ISiteWhereEventDispatcher eventDispatcher;
 
 	/*
 	 * (non-Javadoc)
@@ -50,9 +62,18 @@ public class BaseCommandProcessor implements IAgentCommandProcessor {
 		try {
 			Header header = Device.Header.parseDelimitedFrom(stream);
 			switch (header.getCommand()) {
-			case REGISTER_ACK: {
+			case ACK_REGISTRATION: {
 				RegistrationAck ack = RegistrationAck.parseDelimitedFrom(stream);
-				handleRegisterAck(header, ack);
+				handleRegistrationAck(header, ack);
+				break;
+			}
+			case ACK_DEVICE_STREAM: {
+				// TODO: Add device stream support.
+				break;
+			}
+			case RECEIVE_DEVICE_STREAM_DATA: {
+				// TODO: Add device stream support.
+				break;
 			}
 			}
 		} catch (IOException e) {
@@ -69,6 +90,65 @@ public class BaseCommandProcessor implements IAgentCommandProcessor {
 	@Override
 	public void processSpecificationCommand(byte[] message, ISiteWhereEventDispatcher dispatcher)
 			throws SiteWhereAgentException {
+		try {
+			ByteArrayInputStream encoded = new ByteArrayInputStream(message);
+			ObjectInputStream in = new ObjectInputStream(encoded);
+
+			String commandName = (String) in.readObject();
+			Object[] parameters = (Object[]) in.readObject();
+			Object[] parametersWithOriginator = new Object[parameters.length + 1];
+			Class<?>[] types = new Class[parameters.length];
+			Class<?>[] typesWithOriginator = new Class[parameters.length + 1];
+			int i = 0;
+			for (Object parameter : parameters) {
+				types[i] = parameter.getClass();
+				typesWithOriginator[i] = types[i];
+				parametersWithOriginator[i] = parameters[i];
+				i++;
+			}
+			IDeviceEventOriginator originator = (IDeviceEventOriginator) in.readObject();
+			typesWithOriginator[i] = IDeviceEventOriginator.class;
+			parametersWithOriginator[i] = originator;
+
+			Method method = null;
+			try {
+				method = getClass().getMethod(commandName, typesWithOriginator);
+				method.invoke(this, parametersWithOriginator);
+			} catch (NoSuchMethodException e) {
+				LOGGER.log(Level.WARNING, "Unable to find method with originator parameter.", e);
+				method = getClass().getMethod(commandName, types);
+				method.invoke(this, parameters);
+			}
+		} catch (StreamCorruptedException e) {
+			LOGGER.log(Level.WARNING, "Unable to decode command in hybrid mode.", e);
+		} catch (IOException e) {
+			LOGGER.log(Level.WARNING, "Unable to read command in hybrid mode.", e);
+		} catch (ClassNotFoundException e) {
+			LOGGER.log(Level.WARNING, "Unable to resolve parameter class.", e);
+		} catch (NoSuchMethodException e) {
+			LOGGER.log(Level.WARNING, "Unable to find method signature that matches command.", e);
+		} catch (IllegalAccessException e) {
+			LOGGER.log(Level.WARNING, "Not allowed to call method for command.", e);
+		} catch (IllegalArgumentException e) {
+			LOGGER.log(Level.WARNING, "Invalid argument for command.", e);
+		} catch (InvocationTargetException e) {
+			LOGGER.log(Level.WARNING, "Unable to call method for command.", e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sitewhere.agent.IAgentCommandProcessor#setEventDispatcher(com.sitewhere.agent
+	 * .ISiteWhereEventDispatcher)
+	 */
+	public void setEventDispatcher(ISiteWhereEventDispatcher eventDispatcher) {
+		this.eventDispatcher = eventDispatcher;
+	}
+
+	public ISiteWhereEventDispatcher getEventDispatcher() {
+		return eventDispatcher;
 	}
 
 	/**
@@ -77,75 +157,85 @@ public class BaseCommandProcessor implements IAgentCommandProcessor {
 	 * @param ack
 	 * @param originator
 	 */
-	public void handleRegisterAck(Header header, RegistrationAck ack) {
+	public void handleRegistrationAck(Header header, RegistrationAck ack) {
 	}
 
 	/**
 	 * Convenience method for sending an acknowledgement event to SiteWhere.
 	 * 
-	 * @param dispatcher
 	 * @param hardwareId
-	 * @param originator
 	 * @param message
+	 * @param originator
 	 * @throws SiteWhereAgentException
 	 */
-	public void sendAck(ISiteWhereEventDispatcher dispatcher, String hardwareId, String originator,
-			String message) throws SiteWhereAgentException {
+	public void sendAck(String hardwareId, String message, IDeviceEventOriginator originator)
+			throws SiteWhereAgentException {
 		SiteWhere.Acknowledge.Builder builder = SiteWhere.Acknowledge.newBuilder();
 		SiteWhere.Acknowledge ack = builder.setHardwareId(hardwareId).setMessage(message).build();
-		dispatcher.acknowledge(ack, originator);
+		getEventDispatcher().acknowledge(ack, getOriginatorEventId(originator));
 	}
 
 	/**
 	 * Convenience method for sending a measurement event to SiteWhere.
 	 * 
-	 * @param dispatcher
 	 * @param hardwareId
-	 * @param originator
 	 * @param name
 	 * @param value
+	 * @param originator
 	 * @throws SiteWhereAgentException
 	 */
-	public void sendMeasurement(ISiteWhereEventDispatcher dispatcher, String hardwareId, String originator,
-			String name, double value) throws SiteWhereAgentException {
-		SiteWhere.DeviceMeasurements.Builder mb = SiteWhere.DeviceMeasurements.newBuilder();
+	public void sendMeasurement(String hardwareId, String name, double value,
+			IDeviceEventOriginator originator) throws SiteWhereAgentException {
+		Model.DeviceMeasurements.Builder mb = Model.DeviceMeasurements.newBuilder();
 		mb.setHardwareId(hardwareId).addMeasurement(
-				SiteWhere.Measurement.newBuilder().setMeasurementId(name).setMeasurementValue(value).build());
-		dispatcher.sendMeasurement(mb.build(), originator);
+				Model.Measurement.newBuilder().setMeasurementId(name).setMeasurementValue(value).build());
+		getEventDispatcher().sendMeasurement(mb.build(), getOriginatorEventId(originator));
 	}
 
 	/**
 	 * Convenience method for sending a location event to SiteWhere.
 	 * 
-	 * @param dispatcher
 	 * @param hardwareId
 	 * @param originator
 	 * @param latitude
 	 * @param longitude
 	 * @param elevation
+	 * @param originator
 	 * @throws SiteWhereAgentException
 	 */
-	public void sendLocation(ISiteWhereEventDispatcher dispatcher, String hardwareId, String originator,
-			double latitude, double longitude, double elevation) throws SiteWhereAgentException {
-		SiteWhere.DeviceLocation.Builder lb = SiteWhere.DeviceLocation.newBuilder();
+	public void sendLocation(String hardwareId, double latitude, double longitude, double elevation,
+			IDeviceEventOriginator originator) throws SiteWhereAgentException {
+		Model.DeviceLocation.Builder lb = Model.DeviceLocation.newBuilder();
 		lb.setHardwareId(hardwareId).setLatitude(latitude).setLongitude(longitude).setElevation(elevation);
-		dispatcher.sendLocation(lb.build(), originator);
+		getEventDispatcher().sendLocation(lb.build(), getOriginatorEventId(originator));
 	}
 
 	/**
 	 * Convenience method for sending an alert event to SiteWhere.
 	 * 
-	 * @param dispatcher
 	 * @param hardwareId
-	 * @param originator
 	 * @param alertType
 	 * @param message
+	 * @param originator
 	 * @throws SiteWhereAgentException
 	 */
-	public void sendAlert(ISiteWhereEventDispatcher dispatcher, String hardwareId, String originator,
-			String alertType, String message) throws SiteWhereAgentException {
-		SiteWhere.DeviceAlert.Builder ab = SiteWhere.DeviceAlert.newBuilder();
+	public void sendAlert(String hardwareId, String alertType, String message,
+			IDeviceEventOriginator originator) throws SiteWhereAgentException {
+		Model.DeviceAlert.Builder ab = Model.DeviceAlert.newBuilder();
 		ab.setHardwareId(hardwareId).setAlertType(alertType).setAlertMessage(message);
-		dispatcher.sendAlert(ab.build(), originator);
+		getEventDispatcher().sendAlert(ab.build(), getOriginatorEventId(originator));
+	}
+
+	/**
+	 * Gets event id of the originating command if available.
+	 * 
+	 * @param originator
+	 * @return
+	 */
+	protected String getOriginatorEventId(IDeviceEventOriginator originator) {
+		if (originator == null) {
+			return null;
+		}
+		return originator.getEventId();
 	}
 }
