@@ -24,11 +24,12 @@ and copy the example configuration file from the **config** directory. The conte
 are in the standard Java properties file format and will be similar to the values
 below:
 
-    ```INI
-    mqtt.hostname=localhost
-    command.processor.classname=com.example.ExampleCommandProcessor
-    device.hardware.id=123-TEST-439829343897429
-    device.specification.token=7dfd6d63-5e8d-4380-be04-fc5c73801dfb
+```INI
+mqtt.hostname=localhost
+command.processor.classname=com.example.ExampleCommandProcessor
+device.hardware.id=123-TEST-439829343897429
+device.specification.token=7dfd6d63-5e8d-4380-be04-fc5c73801dfb
+```
 
 If you are using a cloud instance for SiteWhere, edit the MQTT hostname to correspond to 
 the IP address or hostname of the remote instance. You can also change the hardware id
