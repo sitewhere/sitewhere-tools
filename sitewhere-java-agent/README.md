@@ -54,8 +54,19 @@ invocation will show up at the top of the list and there should be output in the
 agent log indicating that it sent a response to the command. To see the response
 that was sent from the agent, click the icon to the right of the command invocation
 in the administrative interface to view the invocation.	Click the **Responses**
-tab and there should be a response of **'Ackkonwledged'**.
+tab and there should be a response of **'Acknowledged'**.
 
 At this point the device has registered with SiteWhere, SiteWhere has sent a command
-which executed Java code on the agent, and the agent sent a response to SiteWhere 
+which executed Java code on the device, and the device sent a response to SiteWhere 
 which was correlated with the original command.
+
+###Building the Example
+The example agent is written in Java and may be compiled and packaged using 
+[Maven] (https://maven.apache.org/). Excute the following command to build and
+package the agent:
+
+    mvn clean install
+    
+The results of the build are located in the **target** folder under the root. The jar
+file will be named **sitewhere-java-agent-x.y.z.jar** (where x.y.z is the version).
+Once built, the jar can be used as mentioned in the previous section to run the agent.
