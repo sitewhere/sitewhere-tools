@@ -62,7 +62,7 @@ which was correlated with the original command.
 
 ###Building the Example
 The example agent is written in Java and may be compiled and packaged using 
-[Maven] (https://maven.apache.org/). Excute the following command to build and
+[Maven] (https://maven.apache.org/). Execute the following command to build and
 package the agent:
 
     mvn clean install
