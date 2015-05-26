@@ -14,6 +14,46 @@ based on the specification token provided in the SiteWhere sample data.
 Once registered, it waits for commands from SiteWhere and sends data events
 in response to the commands.
 
+###Configuring SiteWhere Command Processing
+The default configuration for SiteWhere needs to be changed in order to support
+sending commands to the agent. Specifically, a routing rule needs to be added
+so that commands for Raspberry Pi devices are encoded and routed properly.
+The following sections need to be updated:
+
+```XML
+	<!-- Device command routing -->
+	<sw:command-routing>
+		<sw:specification-mapping-router defaultDestination="default">
+			<sw:mapping specification="7dfd6d63-5e8d-4380-be04-fc5c73801dfb"
+				destination="raspberry-pi"/>
+		</sw:specification-mapping-router>
+	</sw:command-routing>
+	
+	<!-- Outbound command destinations -->
+	<sw:command-destinations>
+
+		<!-- Delivers commands via MQTT -->
+		<sw:mqtt-command-destination destinationId="default"
+			hostname="localhost" port="1883">
+			<sw:protobuf-command-encoder/>
+			<sw:hardware-id-topic-extractor commandTopicExpr="SiteWhere/commands/%s"
+				systemTopicExpr="SiteWhere/system/%s"/>
+		</sw:mqtt-command-destination>
+
+		<!-- Raspberry Pi Java agent uses hybrid encoder -->
+		<sw:mqtt-command-destination destinationId="raspberry-pi"
+			hostname="localhost" port="1883">
+			<sw:java-protobuf-hybrid-encoder/>
+			<sw:hardware-id-topic-extractor commandTopicExpr="SiteWhere/commands/%s"
+				systemTopicExpr="SiteWhere/system/%s"/>
+		</sw:mqtt-command-destination>
+
+	</sw:command-destinations>
+```
+
+After updating the configuration, restart the SiteWhere server and it should be
+ready to send commands to the agent.
+
 ###Running the Example
 The agent project includes a jar file with the compiled code from the project including
 the required dependencies. To run the example agent, download (or build) the jar file
