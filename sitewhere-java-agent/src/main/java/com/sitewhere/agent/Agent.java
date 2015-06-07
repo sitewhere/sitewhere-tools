@@ -88,9 +88,18 @@ public class Agent {
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	/**
-	 * Start the agent.
+	 * Start the agent using the command processor specified by classname.
+	 * 
+	 * @throws SiteWhereAgentException
 	 */
 	public void start() throws SiteWhereAgentException {
+		start(null);
+	}
+
+	/**
+	 * Start the agent.
+	 */
+	public void start(IAgentCommandProcessor processor) throws SiteWhereAgentException {
 		LOGGER.info("SiteWhere agent starting...");
 
 		this.mqtt = new MQTT();
@@ -112,7 +121,10 @@ public class Agent {
 		outbound = new MQTTOutbound(connection, getOutboundSiteWhereTopic());
 
 		// Create an instance of the command processor.
-		IAgentCommandProcessor processor = createProcessor(outbound);
+		if (processor == null) {
+			processor = createProcessor();
+		}
+		processor.setEventDispatcher(outbound);
 
 		// Create inbound message processing thread.
 		inbound =
@@ -133,17 +145,14 @@ public class Agent {
 
 	/**
 	 * Create an instance of the command processor.
-	 * 
-	 * @param dispatcher
-	 * @return
+	 * FOs	 * @return
 	 * @throws SiteWhereAgentException
 	 */
-	protected IAgentCommandProcessor createProcessor(ISiteWhereEventDispatcher dispatcher)
+	protected IAgentCommandProcessor createProcessor()
 			throws SiteWhereAgentException {
 		try {
 			Class<?> clazz = Class.forName(getCommandProcessorClassname());
 			IAgentCommandProcessor processor = (IAgentCommandProcessor) clazz.newInstance();
-			processor.setEventDispatcher(dispatcher);
 			return processor;
 		} catch (ClassNotFoundException e) {
 			throw new SiteWhereAgentException(e);

@@ -18,7 +18,7 @@ in response to the commands.
 The default configuration for SiteWhere needs to be changed in order to support
 sending commands to the agent. Specifically, a routing rule needs to be added
 so that commands for Raspberry Pi devices are encoded and routed properly.
-The following sections needs to be updated:
+The following sections need to be updated:
 
 ```XML
 	<!-- Device command routing -->

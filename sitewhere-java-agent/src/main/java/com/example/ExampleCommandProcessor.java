@@ -14,7 +14,6 @@ import com.sitewhere.agent.ISiteWhereEventDispatcher;
 import com.sitewhere.agent.SiteWhereAgentException;
 import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Device.Header;
 import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Device.RegistrationAck;
-import com.sitewhere.device.communication.protobuf.proto.Sitewhere.SiteWhere.RegisterDevice;
 import com.sitewhere.spi.device.event.IDeviceEventOriginator;
 
 /**
@@ -42,13 +41,7 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 	@Override
 	public void executeStartupLogic(String hardwareId, String specificationToken,
 			ISiteWhereEventDispatcher dispatcher) throws SiteWhereAgentException {
-		this.hardwareId = hardwareId;
-		this.specificationToken = specificationToken;
-
-		RegisterDevice.Builder builder = RegisterDevice.newBuilder();
-		RegisterDevice register =
-				builder.setHardwareId(hardwareId).setSpecificationToken(specificationToken).build();
-		dispatcher.registerDevice(register, null);
+		sendRegistration(hardwareId, specificationToken);
 		LOGGER.info("Sent registration information.");
 	}
 

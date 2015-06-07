@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Device;
 import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Device.Header;
 import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Device.RegistrationAck;
+import com.sitewhere.device.communication.protobuf.proto.Sitewhere.SiteWhere.RegisterDevice;
 import com.sitewhere.device.communication.protobuf.proto.Sitewhere.Model;
 import com.sitewhere.device.communication.protobuf.proto.Sitewhere.SiteWhere;
 import com.sitewhere.spi.device.event.IDeviceEventOriginator;
@@ -158,6 +159,20 @@ public class BaseCommandProcessor implements IAgentCommandProcessor {
 	 * @param originator
 	 */
 	public void handleRegistrationAck(Header header, RegistrationAck ack) {
+	}
+
+	/**
+	 * Convenience method for sending device registration information to SiteWhere.
+	 * 
+	 * @param hardwareId
+	 * @param specificationToken
+	 * @throws SiteWhereAgentException
+	 */
+	public void sendRegistration(String hardwareId, String specificationToken) throws SiteWhereAgentException {
+		RegisterDevice.Builder builder = RegisterDevice.newBuilder();
+		RegisterDevice register =
+				builder.setHardwareId(hardwareId).setSpecificationToken(specificationToken).build();
+		getEventDispatcher().registerDevice(register, null);
 	}
 
 	/**
