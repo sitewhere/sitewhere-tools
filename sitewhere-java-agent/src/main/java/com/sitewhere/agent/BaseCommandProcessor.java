@@ -30,10 +30,16 @@ import com.sitewhere.spi.device.event.IDeviceEventOriginator;
  * 
  * @author Derek
  */
-public class BaseCommandProcessor implements IAgentCommandProcessor {
+public abstract class BaseCommandProcessor implements IAgentCommandProcessor {
 
 	/** Static logger instance */
 	private static final Logger LOGGER = Logger.getLogger(BaseCommandProcessor.class.getName());
+
+	/** Hardware id */
+	private String hardwareId;
+
+	/** Specification token */
+	private String specificationToken;
 
 	/** SiteWhere event dispatcher */
 	private ISiteWhereEventDispatcher eventDispatcher;
@@ -135,6 +141,33 @@ public class BaseCommandProcessor implements IAgentCommandProcessor {
 		} catch (InvocationTargetException e) {
 			LOGGER.log(Level.WARNING, "Unable to call method for command.", e);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.sitewhere.agent.IAgentCommandProcessor#setHardwareId(java.lang.String)
+	 */
+	public void setHardwareId(String hardwareId) {
+		this.hardwareId = hardwareId;
+	}
+
+	public String getHardwareId() {
+		return hardwareId;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.sitewhere.agent.IAgentCommandProcessor#setSpecificationToken(java.lang.String)
+	 */
+	public void setSpecificationToken(String specificationToken) {
+		this.specificationToken = specificationToken;
+	}
+
+	public String getSpecificationToken() {
+		return specificationToken;
 	}
 
 	/*
