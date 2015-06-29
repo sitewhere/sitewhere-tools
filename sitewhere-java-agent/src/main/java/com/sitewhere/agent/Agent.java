@@ -124,6 +124,8 @@ public class Agent {
 		if (processor == null) {
 			processor = createProcessor();
 		}
+		processor.setHardwareId(hardwareId);
+		processor.setSpecificationToken(specificationToken);
 		processor.setEventDispatcher(outbound);
 
 		// Create inbound message processing thread.
@@ -144,12 +146,11 @@ public class Agent {
 	}
 
 	/**
-	 * Create an instance of the command processor.
-	 * FOs	 * @return
+	 * Create an instance of the command processor. FOs * @return
+	 * 
 	 * @throws SiteWhereAgentException
 	 */
-	protected IAgentCommandProcessor createProcessor()
-			throws SiteWhereAgentException {
+	protected IAgentCommandProcessor createProcessor() throws SiteWhereAgentException {
 		try {
 			Class<?> clazz = Class.forName(getCommandProcessorClassname());
 			IAgentCommandProcessor processor = (IAgentCommandProcessor) clazz.newInstance();

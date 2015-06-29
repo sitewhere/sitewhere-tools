@@ -26,12 +26,6 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 	/** Static logger instance */
 	private static Logger LOGGER = Logger.getLogger(ExampleCommandProcessor.class.getName());
 
-	/** Hardware id */
-	private String hardwareId;
-
-	/** Specification token */
-	private String specificationToken;
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -85,7 +79,7 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 		if (loud) {
 			response = response.toUpperCase();
 		}
-		sendAck(hardwareId, response, originator);
+		sendAck(getHardwareId(), response, originator);
 		LOGGER.info("Sent reponse to 'helloWorld' command.");
 	}
 
@@ -96,7 +90,7 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 	 * @throws SiteWhereAgentException
 	 */
 	public void ping(IDeviceEventOriginator originator) throws SiteWhereAgentException {
-		sendAck(hardwareId, "Acknowledged.", originator);
+		sendAck(getHardwareId(), "Acknowledged.", originator);
 		LOGGER.info("Sent reponse to 'ping' command.");
 	}
 
@@ -107,25 +101,9 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 	 * @throws SiteWhereAgentException
 	 */
 	public void testEvents(IDeviceEventOriginator originator) throws SiteWhereAgentException {
-		sendMeasurement(hardwareId, "engine.temp", 170.0, originator);
-		sendLocation(hardwareId, 33.7550, -84.3900, 0.0, originator);
-		sendAlert(hardwareId, "engine.overheat", "Engine is overheating!", originator);
+		sendMeasurement(getHardwareId(), "engine.temp", 170.0, originator);
+		sendLocation(getHardwareId(), 33.7550, -84.3900, 0.0, originator);
+		sendAlert(getHardwareId(), "engine.overheat", "Engine is overheating!", originator);
 		LOGGER.info("Sent reponse to 'testEvents' command.");
-	}
-
-	public String getHardwareId() {
-		return hardwareId;
-	}
-
-	public void setHardwareId(String hardwareId) {
-		this.hardwareId = hardwareId;
-	}
-
-	public String getSpecificationToken() {
-		return specificationToken;
-	}
-
-	public void setSpecificationToken(String specificationToken) {
-		this.specificationToken = specificationToken;
 	}
 }

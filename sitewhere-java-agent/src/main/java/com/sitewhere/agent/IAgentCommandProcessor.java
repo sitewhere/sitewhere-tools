@@ -46,6 +46,22 @@ public interface IAgentCommandProcessor {
 			throws SiteWhereAgentException;
 
 	/**
+	 * Set based on hardware id configured in agent.
+	 * 
+	 * @param hardwareId
+	 * @throws SiteWhereAgentException
+	 */
+	public void setHardwareId(String hardwareId) throws SiteWhereAgentException;
+
+	/**
+	 * Set based on specification token configured in agent.
+	 * 
+	 * @param specificationToken
+	 * @throws SiteWhereAgentException
+	 */
+	public void setSpecificationToken(String specificationToken) throws SiteWhereAgentException;
+
+	/**
 	 * Set the event dispatcher that allows data to be sent back to SiteWhere.
 	 * 
 	 * @param dispatcher
