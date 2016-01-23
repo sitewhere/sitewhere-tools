@@ -11,8 +11,13 @@ and triggering Java logic based on the requests.
 The agent project includes an example that shows how round-trip processing
 is accomplished for a test device. The device registers itself as a Raspberry Pi
 based on the specification token provided in the SiteWhere sample data.
-Once registered, it waits for commands from SiteWhere and sends data events
-in response to the commands.
+Once registered, it starts an event loop that gathers the current JVM
+memory statistics, sends them to SiteWhere, then waits a few seconds and
+sends another batch. In a real-world scenario, the program could be monitoring
+or manipulating GPIO settings to interact with sensors and actuators.
+The example also implements the list of commands declared for the Raspberry Pi
+device specification, so if commands come in from SiteWhere, the corresponding
+methods are invoked on the agent.
 
 ###SiteWhere Tenant Configuration
 The default SiteWhere tenant configuration should not require any changes in order
@@ -28,7 +33,7 @@ declared as shown below that listens for this type of message:
 </sw:mqtt-event-source>
 ```
 
-On the outbound side, command processing is configured to send message to Java-oriented
+On the outbound side, command processing is configured to send messages to Java-oriented
 devices such as Android and Raspberry Pi using a hybrid message format that combines
 Google Protocol Buffers for system messages and Java serialization for custom commands
 declared in the device specification. This allows new commands to be added in the specification
