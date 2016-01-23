@@ -14,45 +14,60 @@ based on the specification token provided in the SiteWhere sample data.
 Once registered, it waits for commands from SiteWhere and sends data events
 in response to the commands.
 
-###Configuring SiteWhere Command Processing
-The default configuration for SiteWhere needs to be changed in order to support
-sending commands to the agent. Specifically, a routing rule needs to be added
-so that commands for Raspberry Pi devices are encoded and routed properly.
-The following sections need to be updated:
+###SiteWhere Tenant Configuration
+The default SiteWhere tenant configuration should not require any changes in order
+to interact with the Java agent. The agents sends messages encoded with Google Protocol
+Buffers over the MQTT protocol. In the tenant configuration, there is an event source
+declared as shown below that listens for this type of message:
 
-```XML
-	<!-- Device command routing -->
-	<sw:command-routing>
-		<sw:specification-mapping-router defaultDestination="default">
-			<sw:mapping specification="7dfd6d63-5e8d-4380-be04-fc5c73801dfb"
-				destination="raspberry-pi"/>
-		</sw:specification-mapping-router>
-	</sw:command-routing>
-	
-	<!-- Outbound command destinations -->
-	<sw:command-destinations>
-
-		<!-- Delivers commands via MQTT -->
-		<sw:mqtt-command-destination destinationId="default"
-			hostname="localhost" port="1883">
-			<sw:protobuf-command-encoder/>
-			<sw:hardware-id-topic-extractor commandTopicExpr="SiteWhere/commands/%s"
-				systemTopicExpr="SiteWhere/system/%s"/>
-		</sw:mqtt-command-destination>
-
-		<!-- Raspberry Pi Java agent uses hybrid encoder -->
-		<sw:mqtt-command-destination destinationId="raspberry-pi"
-			hostname="localhost" port="1883">
-			<sw:java-protobuf-hybrid-encoder/>
-			<sw:hardware-id-topic-extractor commandTopicExpr="SiteWhere/commands/%s"
-				systemTopicExpr="SiteWhere/system/%s"/>
-		</sw:mqtt-command-destination>
-
-	</sw:command-destinations>
+```xml
+<!-- Event source for protobuf messages over MQTT -->
+<sw:mqtt-event-source sourceId="protobuf" hostname="localhost"
+	port="1883" topic="SiteWhere/input/protobuf">
+	<sw:protobuf-event-decoder/>
+</sw:mqtt-event-source>
 ```
 
-After updating the configuration, restart the SiteWhere server and it should be
-ready to send commands to the agent.
+On the outbound side, command processing is configured to send message to Java-oriented
+devices such as Android and Raspberry Pi using a hybrid message format that combines
+Google Protocol Buffers for system messages and Java serialization for custom commands
+declared in the device specification. This allows new commands to be added in the specification
+and implemented by only adding a corresponding Java method on the device running the agent.
+The tenant configuration for outbound command processing looks something like:
+
+```xml
+<sw:command-routing>
+	<sw:specification-mapping-router defaultDestination="default">
+		<sw:mapping specification="d2604433-e4eb-419b-97c7-88efe9b2cd41"
+			destination="hybrid"/>
+		<sw:mapping specification="7dfd6d63-5e8d-4380-be04-fc5c73801dfb"
+			destination="hybrid"/>
+		<sw:mapping specification="5a95f3f2-96f0-47f9-b98d-f5c081d01948"
+			destination="hybrid"/>
+	</sw:specification-mapping-router>
+</sw:command-routing>
+
+<!-- Outbound command destinations -->
+<sw:command-destinations>
+
+	<!-- Delivers commands via MQTT -->
+	<sw:mqtt-command-destination destinationId="default"
+		hostname="localhost" port="1883">
+		<sw:protobuf-command-encoder/>
+		<sw:hardware-id-topic-extractor commandTopicExpr="SiteWhere/commands/%s"
+			systemTopicExpr="SiteWhere/system/%s"/>
+	</sw:mqtt-command-destination>
+
+	<!-- Used for devices that expect hybrid protobuf/Java invocations -->
+	<sw:mqtt-command-destination destinationId="hybrid"
+		hostname="localhost" port="1883">
+		<sw:java-protobuf-hybrid-encoder/>
+		<sw:hardware-id-topic-extractor commandTopicExpr="SiteWhere/commands/%s"
+			systemTopicExpr="SiteWhere/system/%s"/>
+	</sw:mqtt-command-destination>
+
+</sw:command-destinations>
+```
 
 ###Running the Example
 The agent project includes a jar file with the compiled code from the project including
