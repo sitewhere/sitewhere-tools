@@ -98,8 +98,8 @@ Start the agent by entering:
 
     java -jar sitewhere-java-agent-x.y.z.jar
     
-Note that **z.y.z** above should be replaced by the version number of the agent. The
-agent should start and the logs produced in the console will reflect that the device
+Note that **x.y.z** above should be replaced by the version number of the agent. The
+agent will start and the logs produced in the console will reflect that the device
 has registered with SiteWhere successfully. The next step is to send a command from
 SiteWhere to affect the device.
 
