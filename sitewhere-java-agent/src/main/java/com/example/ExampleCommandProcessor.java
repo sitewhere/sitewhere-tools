@@ -7,6 +7,9 @@
  */
 package com.example;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.sitewhere.agent.BaseCommandProcessor;
@@ -25,6 +28,9 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 
 	/** Static logger instance */
 	private static Logger LOGGER = Logger.getLogger(ExampleCommandProcessor.class.getName());
+
+	/** Executor for background processing */
+	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	/*
 	 * (non-Javadoc)
@@ -52,10 +58,12 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 		switch (ack.getState()) {
 		case NEW_REGISTRATION: {
 			LOGGER.info("SiteWhere indicated device was successfully registered.");
+			onRegistrationConfirmed(ack);
 			break;
 		}
 		case ALREADY_REGISTERED: {
 			LOGGER.info("SiteWhere indicated device is using an existing registration.");
+			onRegistrationConfirmed(ack);
 			break;
 		}
 		case REGISTRATION_ERROR: {
@@ -63,6 +71,53 @@ public class ExampleCommandProcessor extends BaseCommandProcessor {
 			break;
 		}
 		}
+	}
+
+	/**
+	 * Handle logic that should execute once registration is confirmed.
+	 * 
+	 * @param ack
+	 */
+	public void onRegistrationConfirmed(RegistrationAck ack) {
+		sendDataAtInterval();
+	}
+
+	/**
+	 * This is an example of creating a thread that will send data to SiteWhere every so
+	 * often, sleeping between cycles.
+	 */
+	public void sendDataAtInterval() {
+
+		// Run processing in another thread.
+		LOGGER.info("Starting JVM memory statistics sender thread.");
+		executor.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				while (true) {
+
+					// Get Java memory values from the runtime.
+					long free = Runtime.getRuntime().freeMemory();
+					long max = Runtime.getRuntime().maxMemory();
+					long total = Runtime.getRuntime().totalMemory();
+
+					try {
+						// Send events to SiteWhere.
+						sendMeasurement(getHardwareId(), "jvmFreeMemory", free, null);
+						sendMeasurement(getHardwareId(), "jvmMaxMemory", max, null);
+						sendMeasurement(getHardwareId(), "jvmTotalMemory", total, null);
+						LOGGER.info("Sent a batch of JVM memory statistics.");
+
+						// Wait five second before sending next events.
+						Thread.sleep(5000);
+					} catch (SiteWhereAgentException e) {
+						LOGGER.log(Level.WARNING, "Unable to send measurements to SiteWhere.", e);
+					} catch (InterruptedException e) {
+						LOGGER.log(Level.WARNING, "Event sender thread shut down.", e);
+					}
+				}
+			}
+		});
 	}
 
 	/**
