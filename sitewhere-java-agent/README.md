@@ -127,6 +127,6 @@ package the agent:
 
     gradle clean shadowJar
     
-The results of the build are located in the **target** folder under the root. The jar
+The results of the build are located in the **build/libs** folder under the root. The jar
 file will be named **sitewhere-java-agent-x.y.z.jar** (where x.y.z is the version).
 Once built, the jar can be used as mentioned in the previous section to run the agent.
