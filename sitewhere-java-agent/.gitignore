@@ -1,2 +1,4 @@
 /deploy
 /target
+/.gradle/
+/build/

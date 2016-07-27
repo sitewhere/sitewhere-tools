@@ -122,10 +122,10 @@ which was correlated with the original command.
 
 ###Building the Example
 The example agent is written in Java and may be compiled and packaged using 
-[Maven] (https://maven.apache.org/). Execute the following command to build and
+[Gradle] (https://gradle.org/). Execute the following command to build and
 package the agent:
 
-    mvn clean install
+    gradle clean shadowJar
     
 The results of the build are located in the **target** folder under the root. The jar
 file will be named **sitewhere-java-agent-x.y.z.jar** (where x.y.z is the version).

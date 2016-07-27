@@ -1,2 +1,4 @@
 /bin
 /binary-decoder-archetype/target
+/.project
+/.gradle/
