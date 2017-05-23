@@ -1,6 +1,6 @@
 allprojects {
     group = 'com.sitewhere.tools'
-	version = '1.8.0'
+	version = '1.10.0'
 	
     repositories {
         maven { url "http://repo.maven.apache.org/maven2" }

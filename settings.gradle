@@ -1,4 +1,6 @@
 rootProject.name = 'sitewhere-tools'
 include ':sitewhere-java-agent'
+include ':sitewhere-jira-to-github-converter'
 
 project(':sitewhere-java-agent').projectDir = "$rootDir/sitewhere-java-agent" as File
+project(':sitewhere-jira-to-github-converter').projectDir = "$rootDir/sitewhere-jira-to-github-converter" as File
